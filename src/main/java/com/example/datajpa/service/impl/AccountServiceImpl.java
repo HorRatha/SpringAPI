@@ -44,7 +44,7 @@ public class AccountServiceImpl implements AccountService {
         String typeName = request.accountType().toUpperCase(Locale.ROOT);
         String phoneNumber = request.phoneNumber();
 
-        if (accountRepository.existsByCustomer_PhoneAndAccountType_TypeName(phoneNumber, typeName)) {
+        if (accountRepository.existsByCustomer_PhoneNumberAndAccountType_TypeName(phoneNumber, typeName)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Customer already has an account of this type");
         }
 
@@ -110,12 +110,12 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public List<AccountResponse> findAccountByCustomerPhone(CustomerPhoneRequest customerPhoneRequest) {
 
-
+        // validation Customer
         if (!customerRepository.existsByPhoneNumber(customerPhoneRequest.phoneNumber())){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found");
         }
 
-        List<Account> accounts = accountRepository.findAccountByCustomer_Phone(customerPhoneRequest.phoneNumber())
+        List<Account> accounts = accountRepository.findAccountByCustomer_PhoneNumber(customerPhoneRequest.phoneNumber())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
 
         return accounts.stream()
@@ -124,4 +124,3 @@ public class AccountServiceImpl implements AccountService {
                 .collect(Collectors.toList());
     }
 }
-

@@ -32,12 +32,12 @@ public class CustomerController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public CustomerResponse createNew(@RequestBody CustomerRequest customerRequest) {
-        return customerService.createNew(customerRequest);
+        return customerService.createCustomer(customerRequest);
     }
 
     @PatchMapping("/{phone}")
     public CustomerResponse updateCustomer(@PathVariable String phone, @RequestBody UpdateCustomerRequest updateCustomerRequest) {
-        return customerService.updateByPhoneNumber(phone, updateCustomerRequest);
+        return customerService.updateByPhone(phone, updateCustomerRequest);
 
     }
 }

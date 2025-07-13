@@ -26,43 +26,54 @@ public class CustomerServiceImpl implements CustomerService {
     private final CustomerMapper customerMapper;
 
     @Override
-    public CustomerResponse updateByPhoneNumber(String phoneNumber, UpdateCustomerRequest updateCustomerRequest) {
-        return null;
-    }
+    public CustomerResponse createCustomer(CustomerRequest customer) {
 
-    @Override
-    public CustomerResponse findByPhoneNumber(String phoneNumber) {
-        return customerRepository
-                .findByPhoneNumber(phoneNumber)
-                .map(customerMapper::mapCustomerToCustomerResponse)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Phone number not found"));
+        if(customerRepository.existsByEmail(customer.email())){
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
+        }
+        if(customerRepository.existsByPhoneNumber(customer.phone())){
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Phone already exists");
+        }
+
+
+        Customer createCustomer = customerMapper.fromCreateCustomerRequest(customer);
+        createCustomer.setIsDeleted(false);
+
+        log.info("Customer before creation: {}", createCustomer.getId());
+        customerRepository.save(createCustomer);
+        log.info("Customer after creation: {}", createCustomer.getId());
+
+        return customerMapper.mapCustomerToCustomerResponse(createCustomer);
     }
 
 
     @Override
     public List<CustomerResponse> findAll() {
         List<Customer> customers = customerRepository.findAll();
+        if(customers.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found");
+        }
         return customers.stream()
                 .map(customerMapper::mapCustomerToCustomerResponse)
                 .toList();
+
     }
 
     @Override
-    public CustomerResponse createNew(CustomerRequest createCustomerRequest) {
-        if (customerRepository.existsByEmail(createCustomerRequest.email()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
-
-        if (customerRepository.existsByPhoneNumber(createCustomerRequest.phone()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Phone number already exists");
-
-        Customer customer = customerMapper.fromCreateCustomerRequest(createCustomerRequest);
-        customer.setIsDeleted(false);
-
-        log.info("Customer ID before save: {}", customer.getId());
-        customer  = customerRepository.save(customer);
-        log.info("Customer ID after save: {}", customer.getId());
+    public CustomerResponse findByPhoneNumber(String phoneNumber) {
+        return customerRepository.findByPhoneNumber(phoneNumber)
+                .map(customerMapper::mapCustomerToCustomerResponse)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer phone number does not exist"));
+    }
 
 
-        return customerMapper.mapCustomerToCustomerResponse(customer);
+    @Override
+    public CustomerResponse updateByPhone(String phone, UpdateCustomerRequest updateCustomerRequest) {
+
+        Customer customer = customerRepository.findByPhoneNumber(phone)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer phone number does not exist"));
+        customerMapper.toCustomerPartially(updateCustomerRequest, customer);
+        Customer updated = customerRepository.save(customer);
+        return customerMapper.mapCustomerToCustomerResponse(updated);
     }
 }
