@@ -17,7 +17,7 @@ public class AccountTypeController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public AccountTypeResponse createAccountType(@Valid @RequestBody CreateAccountTypeRequest createAccountTypeRequest) {
+    public AccountTypeResponse createAccountType(@Valid @RequestBody CreateAccountTypeRequest  createAccountTypeRequest) {
 
         return accountTypeService.createAccountType(createAccountTypeRequest);
     }

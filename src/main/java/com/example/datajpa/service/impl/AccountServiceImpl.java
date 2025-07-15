@@ -11,6 +11,7 @@ import com.example.datajpa.mapper.AccountMapper;
 import com.example.datajpa.repository.AccountRepository;
 import com.example.datajpa.repository.AccountTypeRepository;
 import com.example.datajpa.repository.CustomerRepository;
+import com.example.datajpa.repository.KYCRepository;
 import com.example.datajpa.service.AccountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,29 +30,33 @@ public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final CustomerRepository customerRepository;
     private final AccountTypeRepository accountTypeRepository;
+    private final KYCRepository kycRepository;
     private final AccountMapper accountMapper;
 
     @Override
     public AccountResponse createAccount(CreateAccountRequest request) {
 
-        Customer customer = customerRepository.findByPhoneNumber(request.phoneNumber())
+        Customer customer = customerRepository.findByPhone(request.phoneNumber())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found"));
 
-        // validation account type
         AccountType accountType = accountTypeRepository.findAccountTypeByTypeName(request.accountType().toUpperCase(Locale.ROOT))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account type not found"));
 
         String typeName = request.accountType().toUpperCase(Locale.ROOT);
         String phoneNumber = request.phoneNumber();
 
-        if (accountRepository.existsByCustomer_PhoneNumberAndAccountType_TypeName(phoneNumber, typeName)) {
+        if (accountRepository.existsByCustomer_PhoneAndAccountType_TypeName(phoneNumber, typeName)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Customer already has an account of this type");
+        }
+
+        if(customer.getKyc().getIsVerified().equals(false)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Customer need to be verified");
         }
 
         Account account = accountMapper.customerRequestToAccount(request);
         account.setCustomer(customer);
         account.setAccountType(accountType);
-        account.setOverLimit(BigDecimal.valueOf(10000));
+        account.setOverLimit(customer.getCustomerSegment().getOverLimitSet());
         account.setIsDeleted(false);
 
         return accountMapper.accountToAccountResponse(accountRepository.save(account));
@@ -63,13 +68,41 @@ public class AccountServiceImpl implements AccountService {
                 .filter(account -> account.getIsDeleted().equals(false))
                 .map(accountMapper::accountToAccountResponse)
                 .collect(Collectors.toList());
-        // validation if list of account empty
+        // check if list of account empty
         if (accounts.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found");
         }
 
         return accounts;
     }
+
+    @Override
+    public AccountResponse updateAccount(String actNo, UpdateAccountRequest request) {
+
+        Account accountToUpdate = accountRepository.findAccountByActNo(actNo)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
+        accountMapper.toAccountPartially(request,accountToUpdate);
+
+        return accountMapper.accountToAccountResponse(accountRepository.save(accountToUpdate));
+    }
+
+    @Override
+    public List<AccountResponse> findAccountByCustomerPhone(CustomerPhoneRequest customerPhoneRequest) {
+
+        // validation Customer
+        if (!customerRepository.existsByPhone(customerPhoneRequest.phoneNumber())){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found");
+        }
+
+        List<Account> accounts = accountRepository.findAccountByCustomer_Phone(customerPhoneRequest.phoneNumber())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
+
+        return accounts.stream()
+                .filter(account -> account.getIsDeleted().equals(false))
+                .map(accountMapper::accountToAccountResponse)
+                .collect(Collectors.toList());
+    }
+
 
     @Override
     public AccountResponse findAccountByActNo(String actNo) {
@@ -97,30 +130,5 @@ public class AccountServiceImpl implements AccountService {
 
     }
 
-    @Override
-    public AccountResponse updateAccount(String actNo, UpdateAccountRequest request) {
 
-        Account accountToUpdate = accountRepository.findAccountByActNo(actNo)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
-        accountMapper.toAccountPartially(request,accountToUpdate);
-
-        return accountMapper.accountToAccountResponse(accountRepository.save(accountToUpdate));
-    }
-
-    @Override
-    public List<AccountResponse> findAccountByCustomerPhone(CustomerPhoneRequest customerPhoneRequest) {
-
-        // validation Customer
-        if (!customerRepository.existsByPhoneNumber(customerPhoneRequest.phoneNumber())){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found");
-        }
-
-        List<Account> accounts = accountRepository.findAccountByCustomer_PhoneNumber(customerPhoneRequest.phoneNumber())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
-
-        return accounts.stream()
-                .filter(account -> account.getIsDeleted().equals(false))
-                .map(accountMapper::accountToAccountResponse)
-                .collect(Collectors.toList());
-    }
 }

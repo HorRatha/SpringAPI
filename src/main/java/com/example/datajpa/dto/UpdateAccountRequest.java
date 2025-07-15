@@ -9,6 +9,6 @@ import java.math.BigDecimal;
 public record UpdateAccountRequest(
 
         String actName,
-
         BigDecimal balance
+
 ) { }

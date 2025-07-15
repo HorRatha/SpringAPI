@@ -12,10 +12,8 @@ public interface AccountRepository extends JpaRepository<Account, Integer> {
 
     Optional<Account> findAccountByActNo(String actNo);
 
-    // Changed from Customer_Phone to Customer_PhoneNumber
-    Optional<List<Account>> findAccountByCustomer_PhoneNumber(String phoneNumber);
+    Optional<List<Account>> findAccountByCustomer_Phone(String phoneNumber);
 
-    // Changed from Customer_Phone to Customer_PhoneNumber
-    boolean existsByCustomer_PhoneNumberAndAccountType_TypeName(String phoneNumber, String typeName);
+    boolean existsByCustomer_PhoneAndAccountType_TypeName(String phone, String typeName);
 
 }

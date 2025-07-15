@@ -1,6 +1,7 @@
 package com.example.datajpa.exception;
 
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -16,6 +17,14 @@ import java.util.Map;
 @RestControllerAdvice
 public class ServiceException {
 
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, String> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("message", "Segment name already exists. Please use a different name.");
+        return error;
+    }
+
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<?> handleServiceException(ResponseStatusException exception) {
         ErrorResponse<Object> errorResponse = ErrorResponse.builder()
@@ -28,7 +37,7 @@ public class ServiceException {
         return ResponseEntity.status(exception.getStatusCode()).body(errorResponse);
     }
 
-    // handle error from user request fields
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
@@ -37,4 +46,5 @@ public class ServiceException {
                 errors.put(error.getField(), error.getDefaultMessage()));
         return errors;
     }
+
 }

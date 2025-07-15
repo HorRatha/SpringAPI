@@ -12,6 +12,7 @@ import org.mapstruct.*;
 @Mapper(componentModel = "spring")
 
 public interface AccountMapper {
+
     @Mapping(target = "actNo", expression = "java(java.util.UUID.randomUUID().toString())")
     @Mapping(target = "accountType", ignore = true)
     Account customerRequestToAccount(CreateAccountRequest createAccountRequest);
@@ -23,4 +24,5 @@ public interface AccountMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void toAccountPartially(UpdateAccountRequest updateAccountRequest, @MappingTarget Account account);
+
 }

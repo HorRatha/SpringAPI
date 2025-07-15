@@ -5,6 +5,7 @@ import lombok.Builder;
 
 @Builder
 public record CreateAccountTypeRequest(
+
         @NotBlank(message = "Account type is required ")
         String typeName
 ) {

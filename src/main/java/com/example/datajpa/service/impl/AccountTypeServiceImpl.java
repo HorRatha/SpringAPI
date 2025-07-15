@@ -16,6 +16,7 @@ import java.util.Locale;
 @Service
 @RequiredArgsConstructor
 public class AccountTypeServiceImpl implements AccountTypeService {
+
     private final AccountTypeRepository accountTypeRepository;
     private final AccountMapper accountMapper;
 

@@ -10,15 +10,11 @@ import java.util.List;
 public interface AccountService {
     AccountResponse createAccount(CreateAccountRequest request);
 
+    AccountResponse updateAccount(String actNo, UpdateAccountRequest request);
+    List<AccountResponse> findAccountByCustomerPhone(CustomerPhoneRequest customerPhoneRequest);
     List<AccountResponse> findAll();
-
     AccountResponse findAccountByActNo(String actNo);
-
     void disableAccountByActNo(String actNo);
-
     void deleteAccountByActNo(String actNo);
 
-    AccountResponse updateAccount(String actNo, UpdateAccountRequest request);
-
-    List<AccountResponse> findAccountByCustomerPhone(CustomerPhoneRequest customerPhoneRequest);
 }

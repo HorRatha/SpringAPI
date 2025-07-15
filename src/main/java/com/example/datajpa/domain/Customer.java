@@ -2,36 +2,46 @@ package com.example.datajpa.domain;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
-@Data
-@NoArgsConstructor
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 @Table(name = "customers")
 public class Customer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false)
     private Integer id;
-    @Column(nullable = false, length = 150)
+
+    @Column(unique = true, nullable = false)
     private String fullName;
-    @Column(nullable = false, length = 10)
-    private String gender;
-    @Column(unique = true, length = 100)
+
+    @Column(unique = true, nullable = false, length = 100)
     private String email;
-    @Column(unique = true, length = 15)
-    private String phoneNumber;
+
+    @Column(unique = true, nullable = false, length = 15)
+    private String phone;
+
+    private String gender;
+
+    private Boolean isDeleted;
+
     @Column(columnDefinition = "TEXT")
     private String remark;
-    @Column(nullable = false)
-    private Boolean isDeleted;
-//use mappedBy for tell it mean relationship hx trov yk pi na kom create new
+
     @OneToMany(mappedBy = "customer")
-//    customer has much accounts  use has -a (use object)
     private List<Account> accounts;
 
     @OneToOne(mappedBy = "customer")
     private KYC kyc;
+
+    @ManyToOne(optional = false)
+    private CustomerSegment customerSegment;
 }
