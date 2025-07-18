@@ -4,6 +4,7 @@ package com.example.datajpa.exception;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -17,14 +18,6 @@ import java.util.Map;
 @RestControllerAdvice
 public class ServiceException {
 
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public Map<String, String> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
-        Map<String, String> error = new HashMap<>();
-        error.put("message", "Segment name already exists. Please use a different name.");
-        return error;
-    }
-
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<?> handleServiceException(ResponseStatusException exception) {
         ErrorResponse<Object> errorResponse = ErrorResponse.builder()
@@ -37,7 +30,7 @@ public class ServiceException {
         return ResponseEntity.status(exception.getStatusCode()).body(errorResponse);
     }
 
-
+    // handle error from user request fields
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
@@ -45,6 +38,25 @@ public class ServiceException {
         ex.getBindingResult().getFieldErrors().forEach(error ->
                 errors.put(error.getField(), error.getDefaultMessage()));
         return errors;
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, String> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("message", "Segment name already exists. Please use a different name.");
+        return error;
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ErrorResponse<?> handleJsonParseException(HttpMessageNotReadableException ex) {
+        return ErrorResponse.builder()
+                .code(HttpStatus.BAD_REQUEST.value())
+                .message("Json parse error")
+                .timestamp(LocalDateTime.now())
+                .details(ex.getMessage())
+                .build();
     }
 
 }

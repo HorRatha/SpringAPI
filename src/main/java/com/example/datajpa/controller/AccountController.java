@@ -61,6 +61,4 @@ public class AccountController {
         return accountService.updateAccount(actNo, updateAccountRequest);
     }
 
-
-
 }

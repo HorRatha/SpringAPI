@@ -8,10 +8,11 @@ import java.math.BigDecimal;
 
 public record AccountResponse(
 
-        String actName,
         String actNo,
+        String actName,
+        String actCurrency,
         BigDecimal balance,
-        BigDecimal overLimit,
+        Boolean isHide,
         String accountType
 ) {
 }

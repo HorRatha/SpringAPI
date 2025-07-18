@@ -9,11 +9,11 @@ import java.util.Optional;
 
 @Repository
 public interface AccountRepository extends JpaRepository<Account, Integer> {
-
     Optional<Account> findAccountByActNo(String actNo);
 
     Optional<List<Account>> findAccountByCustomer_Phone(String phoneNumber);
 
     boolean existsByCustomer_PhoneAndAccountType_TypeName(String phone, String typeName);
 
+    boolean existsByActNo(String s);
 }

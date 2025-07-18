@@ -16,14 +16,30 @@ import java.util.List;
 @Table(name = "accounts")
 public class Account {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
     private Integer id;
-    private String actName;
+
+    @Column(unique = true, nullable = false, length = 32)
     private String actNo;
+
+    @Column(nullable = false, length = 50)
+    private String actName;
+
+    @Column(nullable = false, length = 15)
+    private String actCurrency;
+
+    @Column(nullable = false)
     private BigDecimal balance;
+
+    @Column(nullable = false)
     private BigDecimal overLimit;
+
+    @Column(nullable = false)
+    private Boolean isHide;
+
+    @Column(nullable = false)
     private Boolean isDeleted;
 
     @ManyToOne(optional = false)
@@ -37,5 +53,5 @@ public class Account {
     @OneToMany(mappedBy = "sender")
     private List<Transaction> transactions;
 
-}
 
+}
