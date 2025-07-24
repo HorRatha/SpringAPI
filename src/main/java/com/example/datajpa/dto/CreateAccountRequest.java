@@ -6,7 +6,6 @@ import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 
 public record CreateAccountRequest(
-
         String actNo,
 
         @NotBlank(message = "Account name is required")
